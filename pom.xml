@@ -20,6 +20,7 @@
     <module>collector</module>
     <module>jmx_prometheus_httpserver</module>
     <module>jmx_prometheus_javaagent</module>
+      <module>jmx_prometheus_pushgateway</module>
   </modules>
 
   <distributionManagement>

@@ -9,16 +9,39 @@ import io.prometheus.jmx.quartz.SchedulerProperties;
 import org.quartz.Scheduler;
 
 import javax.management.MalformedObjectNameException;
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
+import java.util.Properties;
 
 public class SrepJmxAgent {
     public static PushGateway pushGateway;
+    public static Properties properties;
 
+    /**
+     * 启动参数使用空格分开
+     * pushgatewayAddredd=10.10.1.31:9091 config=tomcat.yml
+     * @param args
+     * @throws IOException
+     * @throws MalformedObjectNameException
+     */
     public static void main(String[] args) throws IOException, MalformedObjectNameException {
-        collectorRegister("E:\\workspace\\jmx_exporter\\example_configs\\tomcat.yml");
-        initPushGateway("10.10.1.31:9091");
+        String address = "";
+        String pathName = "";
+        for (String arg : args) {
+            if (arg.contains("pushgatewayAddredd=")) {
+                address = arg.substring(arg.indexOf("=")+1);
+            }
+            if (arg.contains("config=")) {
+                pathName = "E:\\workspace\\jmx_exporter\\example_configs\\" + arg.substring(arg.indexOf("=")+1);
+            }
+        }
+        collectorRegister(pathName);
+        initPushGateway(address);
         initPushJob();
+    }
+
+    public static void initProperties() throws IOException {
+        InputStream in = new FileInputStream(new File(System.getProperty("user.dir") + File.separator + "application.properties"));
+        properties.load(in);
     }
 
     public static void collectorRegister(String pathName) throws IOException, MalformedObjectNameException {

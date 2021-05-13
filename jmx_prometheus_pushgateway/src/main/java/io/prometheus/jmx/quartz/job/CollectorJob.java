@@ -22,6 +22,7 @@ public class CollectorJob implements Job {
                 Map<String, String> groupingKey = new HashMap<String, String>();
                 InetAddress addr = InetAddress.getLocalHost();
                 groupingKey.put("instance", addr.getHostAddress());
+                groupingKey.put("group", "srep");
                 SrepJmxAgent.pushGateway.push(CollectorRegistry.defaultRegistry,"jmx_job", groupingKey);
             }
         } catch (IOException e) {

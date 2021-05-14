@@ -15,6 +15,7 @@ public class JavaAgent {
     static HTTPServer server;
 
     public static void agentmain(String agentArgument, Instrumentation instrumentation) throws Exception {
+        System.out.println(agentArgument);
         premain(agentArgument, instrumentation);
     }
 

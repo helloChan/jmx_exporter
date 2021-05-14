@@ -43,54 +43,54 @@
     <plugins>
       <!-- Build a full shaded jar with dependencies -->
       <plugin>
-      <groupId>org.apache.maven.plugins</groupId>
-      <artifactId>maven-shade-plugin</artifactId>
-      <version>2.3</version>
-      <executions>
-      <execution>
-        <phase>package</phase>
-        <goals>
-          <goal>shade</goal>
-        </goals>
-        <configuration>
-          <minimizeJar>true</minimizeJar>
-          <relocations>
-            <relocation>
-              <shadedPattern>io.prometheus.jmx.shaded.</shadedPattern>
-              <includes>
-                <include>io.prometheus.**</include>
-                <include>javax.servlet.**</include>
-                <include>org.eclipse.**</include>
-                <include>org.yaml.**</include>
-              </includes>
-              <excludes>
-                <exclude>io.prometheus.jmx.shaded.**</exclude>
-              </excludes>
-            </relocation>
-          </relocations>
-          <filters>
-            <filter>
-              <artifact>*:*</artifact>
-              <excludes>
-                <exclude>META-INF/*.SF</exclude>
-                <exclude>META-INF/*.DSA</exclude>
-                <exclude>META-INF/*.RSA</exclude>
-              </excludes>
-            </filter>
-          </filters>
-          <transformers>
-            <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-             <manifestEntries>
-              <Premain-Class>io.prometheus.jmx.shaded.io.prometheus.jmx.JavaAgent</Premain-Class>
-              <Agent-Class>io.prometheus.jmx.shaded.io.prometheus.jmx.JavaAgent</Agent-Class>
-              <Implementation-Version>${project.version}</Implementation-Version>
-              <Implementation-Title>${project.artifactId}</Implementation-Title>
-             </manifestEntries>
-            </transformer>
-          </transformers>
-        </configuration>
-      </execution>
-      </executions>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-shade-plugin</artifactId>
+        <version>2.4.3</version>
+        <executions>
+          <execution>
+            <phase>package</phase>
+            <goals>
+              <goal>shade</goal>
+            </goals>
+            <configuration>
+              <minimizeJar>true</minimizeJar>
+              <relocations>
+                <relocation>
+                  <shadedPattern>io.prometheus.jmx.shaded.</shadedPattern>
+                  <includes>
+                    <include>io.prometheus.**</include>
+                    <include>javax.servlet.**</include>
+                    <include>org.eclipse.**</include>
+                    <include>org.yaml.**</include>
+                  </includes>
+                  <excludes>
+                    <exclude>io.prometheus.jmx.shaded.**</exclude>
+                  </excludes>
+                </relocation>
+              </relocations>
+              <filters>
+                <filter>
+                  <artifact>*:*</artifact>
+                  <excludes>
+                    <exclude>META-INF/*.SF</exclude>
+                    <exclude>META-INF/*.DSA</exclude>
+                    <exclude>META-INF/*.RSA</exclude>
+                  </excludes>
+                </filter>
+              </filters>
+              <transformers>
+                <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                  <manifestEntries>
+                    <Premain-Class>io.prometheus.jmx.shaded.io.prometheus.jmx.JavaAgent</Premain-Class>
+                    <Agent-Class>io.prometheus.jmx.shaded.io.prometheus.jmx.JavaAgent</Agent-Class>
+                    <Implementation-Version>${project.version}</Implementation-Version>
+                    <Implementation-Title>${project.artifactId}</Implementation-Title>
+                  </manifestEntries>
+                </transformer>
+              </transformers>
+            </configuration>
+          </execution>
+        </executions>
       </plugin>
 
       <plugin>
@@ -149,5 +149,10 @@
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+
+    <maven.compiler.source>1.8</maven.compiler.source>
+    <maven.compiler.target>1.8</maven.compiler.target>
+    <maven.compiler.compilerVersion>1.8</maven.compiler.compilerVersion>
+<!--    <java.version>1.8</java.version>-->
   </properties>
 </project>

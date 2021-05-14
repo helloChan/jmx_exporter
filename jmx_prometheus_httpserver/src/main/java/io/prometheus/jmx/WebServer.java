@@ -28,6 +28,7 @@ public class WebServer {
 
      new BuildInfoCollector().register();
      new JmxCollector(new File(args[1])).register();
+     new JmxBeanCollector().register();
      new HTTPServer(socket, CollectorRegistry.defaultRegistry);
    }
 }

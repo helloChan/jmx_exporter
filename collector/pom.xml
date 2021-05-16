@@ -33,14 +33,18 @@
     </dependency>
 
     <!-- 虚拟机类信息采集支持 -->
+<!--    <dependency>-->
+<!--      <groupId>io.earcam.wrapped</groupId>-->
+<!--      <artifactId>com.sun.tools.attach</artifactId>-->
+<!--      <version>1.8</version>-->
+<!--      <scope>system</scope>-->
+<!--      <systemPath>${project.basedir}/lib/tools-1.8.jar</systemPath>-->
+<!--    </dependency>-->
     <dependency>
-      <groupId>io.earcam.wrapped</groupId>
-      <artifactId>com.sun.tools.attach</artifactId>
-      <version>1.8.0_jdk8u131-b11</version>
-      <scope>system</scope>
-      <systemPath>${project.basedir}/libs/tools.jar</systemPath>
+      <groupId>com.kungeek.srep</groupId>
+      <artifactId>tools</artifactId>
+      <version>1.8</version>
     </dependency>
-
   </dependencies>
 
 
@@ -66,6 +70,17 @@
         </configuration>
       </plugin>
     </plugins>
+    <resources>
+      <resource>
+        <!--本地jar得目录-->
+        <directory>/lib</directory>
+        <!--打包时，目标jar存放位置-->
+        <targetPath>META-INF/lib/</targetPath>
+        <includes>
+          <include>**/*.jar</include>
+        </includes>
+      </resource>
+    </resources>
   </build>
 
   <properties>

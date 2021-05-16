@@ -18,7 +18,6 @@ public class JavaAgent {
     static HTTPServer server;
 
     public static void agentmain(String agentArgument, Instrumentation instrumentation) throws Exception {
-        System.out.println(agentArgument);
         premain(agentArgument, instrumentation);
     }
 
@@ -30,7 +29,7 @@ public class JavaAgent {
 
             new BuildInfoCollector().register();
             new JmxCollector(new File(config.file)).register();
-            new JmxBeanCollector().register();
+            new JvmBeanCollector().register();
             DefaultExports.initialize();
             server = new HTTPServer(config.socket, CollectorRegistry.defaultRegistry, true);
         }

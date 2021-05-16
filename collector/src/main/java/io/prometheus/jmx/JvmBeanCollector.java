@@ -5,11 +5,16 @@ import io.prometheus.client.Collector;
 import io.prometheus.client.GaugeMetricFamily;
 import sun.tools.attach.HotSpotVirtualMachine;
 
+import javax.management.MBeanServerConnection;
+import javax.management.remote.JMXConnector;
+import javax.management.remote.JMXConnectorFactory;
+import javax.management.remote.JMXServiceURL;
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.lang.management.ManagementFactory;
+import java.lang.management.RuntimeMXBean;
 import java.math.BigDecimal;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -26,7 +31,7 @@ import java.util.stream.Collectors;
  *    修改后版本:     修改人：  修改日期:     修改内容:
  * </pre>
  */
-public class JmxBeanCollector extends Collector {
+public class JvmBeanCollector extends Collector {
 
     @Override
     public <T extends Collector> T register() {
@@ -199,8 +204,43 @@ public class JmxBeanCollector extends Collector {
         return flag;
     }
 
+    public static void main(String[] args) throws IOException {
+        JvmBeanCollector jvmBeanCollector = new JvmBeanCollector();
+        long l = jvmBeanCollector.remoteProcessID();
+        System.out.println("pid ----> " + l);
+    }
+
+    /**
+     * 获取指定jmx的虚拟机进程号
+     * @return
+     * @throws IOException
+     */
+    public long remoteProcessID() throws IOException {
+        MBeanServerConnection mbs = getRemoteMBeanServerConnection("service:jmx:rmi:///jndi/rmi://127.0.0.1:8080");
+        RuntimeMXBean runtimeMXBean = getRemoteRuntimeMXBean(mbs);
+        String name = runtimeMXBean.getName();
+        String pid = name.split("@")[0];
+        return Long.valueOf(pid);
+    }
+
+    public RuntimeMXBean getRemoteRuntimeMXBean(MBeanServerConnection connection) throws IOException {
+        return ManagementFactory.newPlatformMXBeanProxy(connection, ManagementFactory.RUNTIME_MXBEAN_NAME, RuntimeMXBean.class);
+    }
+
+    public MBeanServerConnection getRemoteMBeanServerConnection(String address) throws IOException {
+        JMXConnector conn = getRemoteJMXConnector(address);
+        return conn.getMBeanServerConnection();
+    }
+
+    public JMXConnector getRemoteJMXConnector(String address) throws IOException {
+        JMXServiceURL serviceURL = new JMXServiceURL(address);
+        JMXConnector conn = JMXConnectorFactory.connect(serviceURL);
+        return conn;
+    }
+
     /**
      * TODO 进程ID获取可能有问题
+     * 获取的是当前Agent的虚拟机进程号
      * @return
      */
     private long processID() {

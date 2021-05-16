@@ -56,6 +56,17 @@ public class JvmBeanCollector extends Collector {
         return mfs;
     }
 
+    public static void main(String[] args) throws IOException {
+        JvmBeanCollector jvmBeanCollector = new JvmBeanCollector();
+        List<JVMBeanStat> jvmBeanStats = jvmBeanCollector.beansStatWithMBean();
+        System.out.println(jvmBeanStats.size());
+        MBeanServerConnection mbs = jvmBeanCollector.getRemoteMBeanServerConnection("service:jmx:rmi:///jndi/rmi://127.0.0.1:1099");
+        RuntimeMXBean runtimeMXBean = jvmBeanCollector.getRemoteRuntimeMXBean(mbs);
+        String name = runtimeMXBean.getName();
+        String pid = name.split("@")[0];
+        System.out.println("--------->"+pid);
+    }
+
     public List<JVMBeanStat> beansStatWithMBean() {
         StringBuilder sb = new StringBuilder();
         List<JVMBeanStat> jvmBeanStats = new ArrayList<>();
@@ -204,19 +215,13 @@ public class JvmBeanCollector extends Collector {
         return flag;
     }
 
-    public static void main(String[] args) throws IOException {
-        JvmBeanCollector jvmBeanCollector = new JvmBeanCollector();
-        long l = jvmBeanCollector.remoteProcessID();
-        System.out.println("pid ----> " + l);
-    }
-
     /**
      * 获取指定jmx的虚拟机进程号
      * @return
      * @throws IOException
      */
     public long remoteProcessID() throws IOException {
-        MBeanServerConnection mbs = getRemoteMBeanServerConnection("service:jmx:rmi:///jndi/rmi://127.0.0.1:8080");
+        MBeanServerConnection mbs = getRemoteMBeanServerConnection("service:jmx:rmi:///jndi/rmi://127.0.0.1:1099");
         RuntimeMXBean runtimeMXBean = getRemoteRuntimeMXBean(mbs);
         String name = runtimeMXBean.getName();
         String pid = name.split("@")[0];

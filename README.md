@@ -1,6 +1,6 @@
 JMX Exporter
 =====
-
+https://www.iteye.com/blog/strongant-2423554
 JMX to Prometheus exporter: a collector that can configurably scrape and
 expose mBeans of a JMX target.
 

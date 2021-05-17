@@ -51,7 +51,7 @@ public class JmxCollector extends Collector implements Collector.Describable {
       ArrayList<String> labelValues;
     }
 
-    private static class Config {
+    public static class Config {
       Integer startDelaySeconds = 0;
       String jmxUrl = "";
       String username = "";
@@ -67,7 +67,7 @@ public class JmxCollector extends Collector implements Collector.Describable {
       MatchedRulesCache rulesCache;
     }
 
-    private Config config;
+    public static Config config;
     private File configFile;
     private long createTimeNanoSecs = System.nanoTime();
 

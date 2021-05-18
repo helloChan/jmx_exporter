@@ -1,15 +1,14 @@
 ### 注意
 ## JmxBeanCollector需要jdk tools.jar支持
-1、将tools.jar放到collector模块下，重名为tools-1.8.jar
-2、在lib目录下将jar安装到本地maven
-```
-    mvn install:install-file -Dfile='D:\IdeaProjects\jmx_exporter\collector\lib\tools-1.8.jar' -DgroupId='com.kungeek.srep' -DartifactId='tools' -Dversion='1.8' -Dpackaging=jar
-```
-3、添加依赖
+1、添加依赖（jdk tools.jar的部分代码）
 ```
 <dependency>
-  <groupId>com.kungeek.srep</groupId>
-  <artifactId>tools</artifactId>
-  <version>1.8</version>
+  <groupId>io.earcam.wrapped</groupId>
+  <artifactId>com.sun.tools.attach</artifactId>
+  <version>1.8.0_jdk8u172-b11</version>
 </dependency>
 ```
+2、打包
+使用父工程打包，拿jmx_prometheus_javaagent模块下的jar包
+
+## jar要跟tomcat一起启动（新增指标需要）

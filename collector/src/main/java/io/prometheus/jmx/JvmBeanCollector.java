@@ -55,15 +55,13 @@ public class JvmBeanCollector extends Collector {
         return mfs;
     }
 
-    public static void main(String[] args) throws IOException, AttachNotSupportedException {
-        HotSpotVirtualMachine hotSpot = (HotSpotVirtualMachine) JvmBeanCollector.attach("15640");
-        System.out.println("--->");
-        JvmBeanCollector jvm = new JvmBeanCollector();
-        Long aLong = jvm.remoteProcessID("service:jmx:rmi:///jndi/rmi://:1099/jmxrmi");
-        List<JVMBeanStat> jvmBeanStats = jvm.beansStatWithMBean(aLong.toString());
-        System.out.println(jvmBeanStats.size());
-    }
-
+    /**
+     * 根据VirtualMachine.attach(id)方法修改
+     * @param id
+     * @return
+     * @throws AttachNotSupportedException
+     * @throws IOException
+     */
     public static VirtualMachine attach(String id) throws AttachNotSupportedException, IOException {
         AttachProvider provider = currentSystemAttachProvider();
         return provider.attachVirtualMachine(id);

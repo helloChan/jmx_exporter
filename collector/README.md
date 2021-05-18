@@ -11,4 +11,5 @@
 2、打包
 使用父工程打包，拿jmx_prometheus_javaagent模块下的jar包
 
-## jar要跟tomcat一起启动（新增指标需要）
+## jar要跟tomcat一起启动
+新增指标需要根据进程号获取HotSpotVirtualMachine,agent单独启动，和tomcat会是两个不同的进程

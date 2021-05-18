@@ -1,9 +1,13 @@
 package io.prometheus.jmx;
 
+import com.sun.tools.attach.AttachNotSupportedException;
 import com.sun.tools.attach.VirtualMachine;
+import com.sun.tools.attach.spi.AttachProvider;
 import io.prometheus.client.Collector;
 import io.prometheus.client.GaugeMetricFamily;
 import sun.tools.attach.HotSpotVirtualMachine;
+import sun.tools.attach.LinuxAttachProvider;
+import sun.tools.attach.WindowsAttachProvider;
 
 import javax.management.MBeanServerConnection;
 import javax.management.remote.JMXConnector;
@@ -34,17 +38,12 @@ import java.util.stream.Collectors;
 public class JvmBeanCollector extends Collector {
 
     @Override
-    public <T extends Collector> T register() {
-        return super.register();
-    }
-
-    @Override
     public List<MetricFamilySamples> collect() {
-        List<JVMBeanStat> jvmBeanStats = this.beansStatWithMBean();
-        if (jvmBeanStats == null || jvmBeanStats.size() == 0) {
-            return null;
-        }
+        List<JVMBeanStat> jvmBeanStats = this.beansStatWithMBean(processID().toString());
         List<MetricFamilySamples> mfs = new ArrayList();
+        if (jvmBeanStats == null || jvmBeanStats.size() == 0) {
+            return mfs;
+        }
         GaugeMetricFamily classCount = new GaugeMetricFamily("srep_jmx_class_count", "jmx类总数", Collections.singletonList("name"));
         GaugeMetricFamily classTotalMemoryByte = new GaugeMetricFamily("srep_jmx_class_total_memory_byte", "jmx类占用总内存", Collections.singletonList("name"));
         jvmBeanStats.forEach(jvmBeanStat -> {
@@ -56,18 +55,34 @@ public class JvmBeanCollector extends Collector {
         return mfs;
     }
 
-    public static void main(String[] args) throws IOException {
-        JvmBeanCollector jvmBeanCollector = new JvmBeanCollector();
-        List<JVMBeanStat> jvmBeanStats = jvmBeanCollector.beansStatWithMBean();
+    public static void main(String[] args) throws IOException, AttachNotSupportedException {
+        HotSpotVirtualMachine hotSpot = (HotSpotVirtualMachine) JvmBeanCollector.attach("15640");
+        System.out.println("--->");
+        JvmBeanCollector jvm = new JvmBeanCollector();
+        Long aLong = jvm.remoteProcessID("service:jmx:rmi:///jndi/rmi://:1099/jmxrmi");
+        List<JVMBeanStat> jvmBeanStats = jvm.beansStatWithMBean(aLong.toString());
         System.out.println(jvmBeanStats.size());
-        MBeanServerConnection mbs = jvmBeanCollector.getRemoteMBeanServerConnection("service:jmx:rmi:///jndi/rmi://127.0.0.1:1099");
-        RuntimeMXBean runtimeMXBean = jvmBeanCollector.getRemoteRuntimeMXBean(mbs);
-        String name = runtimeMXBean.getName();
-        String pid = name.split("@")[0];
-        System.out.println("--------->"+pid);
     }
 
-    public List<JVMBeanStat> beansStatWithMBean() {
+    public static VirtualMachine attach(String id) throws AttachNotSupportedException, IOException {
+        AttachProvider provider = currentSystemAttachProvider();
+        return provider.attachVirtualMachine(id);
+    }
+
+    public static AttachProvider currentSystemAttachProvider() {
+        if (System.getProperty("os.name", "").toLowerCase().contains("windows")) {
+            return new WindowsAttachProvider();
+        } else {
+            return new LinuxAttachProvider();
+        }
+    }
+    /**
+     * 虚拟机进程ID
+     *
+     * @param processID
+     * @return
+     */
+    public List<JVMBeanStat> beansStatWithMBean(String processID) {
         StringBuilder sb = new StringBuilder();
         List<JVMBeanStat> jvmBeanStats = new ArrayList<>();
         HotSpotVirtualMachine hotSpot = null;
@@ -76,8 +91,7 @@ public class JvmBeanCollector extends Collector {
         try {
             String line;
             int count = 0;
-            String pid = String.valueOf(processID());
-            hotSpot = (HotSpotVirtualMachine) VirtualMachine.attach(pid);
+            hotSpot = (HotSpotVirtualMachine) JvmBeanCollector.attach(processID);
             in = new BufferedReader(new InputStreamReader(hotSpot.heapHisto("-all")));
 
             while (true) {
@@ -217,13 +231,16 @@ public class JvmBeanCollector extends Collector {
 
     /**
      * 获取指定jmx的虚拟机进程号
+     *
      * @return
      * @throws IOException
+     * @Param service:jmx:rmi:///jndi/rmi://:1099/jmxrmi
      */
-    public long remoteProcessID() throws IOException {
-        MBeanServerConnection mbs = getRemoteMBeanServerConnection("service:jmx:rmi:///jndi/rmi://127.0.0.1:1099");
-        RuntimeMXBean runtimeMXBean = getRemoteRuntimeMXBean(mbs);
-        String name = runtimeMXBean.getName();
+    public Long remoteProcessID(String jmxURL) throws IOException {
+        JMXConnector conn = getRemoteJMXConnector(jmxURL);
+        MBeanServerConnection remoteMBeanServerConnection = getRemoteMBeanServerConnection(conn);
+        RuntimeMXBean remoteRuntimeMXBean = getRemoteRuntimeMXBean(remoteMBeanServerConnection);
+        String name = remoteRuntimeMXBean.getName();
         String pid = name.split("@")[0];
         return Long.valueOf(pid);
     }
@@ -232,23 +249,22 @@ public class JvmBeanCollector extends Collector {
         return ManagementFactory.newPlatformMXBeanProxy(connection, ManagementFactory.RUNTIME_MXBEAN_NAME, RuntimeMXBean.class);
     }
 
-    public MBeanServerConnection getRemoteMBeanServerConnection(String address) throws IOException {
-        JMXConnector conn = getRemoteJMXConnector(address);
+    public MBeanServerConnection getRemoteMBeanServerConnection(JMXConnector conn) throws IOException {
         return conn.getMBeanServerConnection();
     }
 
-    public JMXConnector getRemoteJMXConnector(String address) throws IOException {
-        JMXServiceURL serviceURL = new JMXServiceURL(address);
+    public JMXConnector getRemoteJMXConnector(String jmxURL) throws IOException {
+        JMXServiceURL serviceURL = new JMXServiceURL(jmxURL);
         JMXConnector conn = JMXConnectorFactory.connect(serviceURL);
         return conn;
     }
 
     /**
-     * TODO 进程ID获取可能有问题
      * 获取的是当前Agent的虚拟机进程号
+     *
      * @return
      */
-    private long processID() {
+    private Long processID() {
         String name = ManagementFactory.getRuntimeMXBean().getName();
         String pid = name.split("@")[0];
         return Long.valueOf(pid);
